@@ -11,9 +11,31 @@
     <style>
         body { background-color: #f8f9fa; padding-top: 50px; }
         .query-container { max-width: 1000px; margin: auto; }
-        .result-area { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .result-area { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); min-height: 300px; }
+        
+        /* 骨架屏動畫 */
+        @keyframes shimmer {
+            0% { background-position: -468px 0; }
+            100% { background-position: 468px 0; }
+        }
+        .skeleton-loader {
+            height: 20px;
+            width: 100%;
+            background: #f6f7f8;
+            background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+            background-repeat: no-repeat;
+            background-size: 800px 104px;
+            display: inline-block;
+            position: relative;
+            animation: shimmer 1.5s infinite linear;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        /* HTMX 載入狀態控制 */
         .loading-indicator { display: none; }
-        .htmx-request .loading-indicator { display: inline-block; }
+        .htmx-request .loading-indicator { display: block; }
+        .htmx-request#result-content { display: none; } /* 載入時隱藏舊結果 */
     </style>
 </head>
 <body>
@@ -21,33 +43,49 @@
 <div class="container query-container">
     <!-- 1. 抬頭 -->
     <div class="text-center mb-5">
-        <h1 class="display-5 fw-bold">Gemio ERP 自然語言查詢</h1>
-        <p class="text-muted">輸入白話文，自動生成並執行 SQL</p>
+        <h1 class="display-5 fw-bold text-primary">Gemio ERP 智慧查詢</h1>
+        <p class="text-muted">用白話文與您的 ERP 對話</p>
     </div>
 
     <!-- 2. 輸入框 -->
     <div class="card mb-4 shadow-sm">
         <div class="card-body">
-            <form hx-post="/query" hx-target="#result-content" hx-indicator="#loading">
+            <!-- 加入 hx-disabled-elt 確保查詢中按鈕無法重複點擊 -->
+            <form hx-post="/query" 
+                  hx-target="#result-content" 
+                  hx-indicator="#skeleton-area"
+                  hx-disabled-elt="button, input">
                 <div class="input-group">
-                    <input type="text" name="user_input" class="form-control form-control-lg" placeholder="例如：查詢最近一個月的採購明細..." required>
-                    <button class="btn btn-primary btn-lg" type="submit">
-                        <span id="loading" class="spinner-border spinner-border-sm loading-indicator" role="status"></span>
-                        查詢
+                    <input type="text" name="user_input" class="form-control form-control-lg" placeholder="例如：哪些產品庫存快沒了？" required>
+                    <button class="btn btn-primary btn-lg px-4" type="submit">
+                        <span id="btn-text">查詢</span>
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- 3. 查詢結果區 -->
+    <!-- 3. 查詢結果區 (內建骨架屏) -->
     <div class="result-area mb-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h4 class="mb-0">查詢結果</h4>
             <button class="btn btn-outline-success btn-sm" onclick="exportExcel()">轉出 Excel</button>
         </div>
+        
+        <!-- 骨架屏區域：僅在發送請求時顯示 -->
+        <div id="skeleton-area" class="loading-indicator">
+            <div class="skeleton-loader" style="width: 30%; height: 30px; margin-bottom: 20px;"></div>
+            <div class="skeleton-loader"></div>
+            <div class="skeleton-loader"></div>
+            <div class="skeleton-loader"></div>
+            <div class="skeleton-loader" style="width: 80%;"></div>
+            <div class="mt-4">
+                <div class="skeleton-loader" style="height: 100px;"></div>
+            </div>
+        </div>
+
         <div id="result-content" class="table-responsive">
-            <p class="text-center text-muted">請在上方輸入框進行查詢</p>
+            <p class="text-center text-muted py-5">請在上方輸入框進行查詢</p>
         </div>
     </div>
 
