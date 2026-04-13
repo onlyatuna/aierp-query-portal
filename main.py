@@ -2,30 +2,16 @@ from fastapi import FastAPI, Request, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, StreamingResponse
+import os
+from dotenv import load_dotenv
+import pyodbc
+import google.generativeai as genai
+import pandas as pd
+import re
 import io
 
-# ... (其餘 import 與設定保持不變)
-
-@app.post("/export")
-async def export_excel(sql_query: str = Form(...)):
-    try:
-        conn = get_db_connection()
-        df = pd.read_sql(sql_query, conn)
-        conn.close()
-        
-        # 建立 Excel 檔案在記憶體中
-        output = io.BytesIO()
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            df.to_excel(writer, index=False, sheet_name='查詢結果')
-        
-        output.seek(0)
-        
-        headers = {
-            'Content-Disposition': 'attachment; filename="query_result.xlsx"'
-        }
-        return StreamingResponse(output, headers=headers, media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    except Exception as e:
-        return HTMLResponse(content=f"<script>alert('匯出失敗: {str(e)}');</script>")
+# 加載環境變數
+load_dotenv()
 
 app = FastAPI(title="Gemio ERP Smart Query")
 
@@ -33,7 +19,6 @@ app = FastAPI(title="Gemio ERP Smart Query")
 templates = Jinja2Templates(directory="templates")
 
 # 定義資料表 Schema (用於 Prompt)
-# 注意: 因為 View 已經將欄位定義為中文，請告訴 Gemini 直接使用中文欄位名
 TABLE_SCHEMAS = """
 1. 資料表名稱: 科目餘額表
    欄位名稱: 
@@ -128,7 +113,7 @@ async def index(request: Request):
 @app.post("/query")
 async def handle_query(request: Request, user_input: str = Form(...)):
     try:
-        # 1. 準備 Prompt (略)
+        # 1. 準備 Prompt
         prompt = f"""
         你是一個 SQL 專家。請根據以下資料表結構，將使用者的自然語言問題轉換為 T-SQL 查詢語句。
         資料庫類型: Microsoft SQL Server
@@ -164,7 +149,6 @@ async def handle_query(request: Request, user_input: str = Form(...)):
         if not df.empty and len(numeric_cols) > 0:
             sums = df[numeric_cols].sum().to_frame().T
             sums.index = ["合計"]
-            # 確保非數字欄位顯示為空字串而非 NaN
             display_df = pd.concat([df, sums])
             summary_html = display_df.to_html(classes="table table-striped table-hover", index=False, border=0, na_rep="")
         else:
@@ -179,9 +163,31 @@ async def handle_query(request: Request, user_input: str = Form(...)):
 
     except Exception as e:
         error_msg = str(e)
+        if "429" in error_msg:
+             return HTMLResponse(content="<div class='alert alert-warning'>⚠️ API 請求過於頻繁（免費版限制），請稍候 60 秒再試一次。</div>")
         if "Login failed" in error_msg:
             return HTMLResponse(content="<div class='alert alert-danger'>❌ 資料庫連線失敗：請檢查 .env 中的帳號密碼。</div>")
         return HTMLResponse(content=f"<div class='alert alert-danger'>❌ 系統錯誤: {error_msg}</div>")
+
+@app.post("/export")
+async def export_excel(sql_query: str = Form(...)):
+    try:
+        conn = get_db_connection()
+        df = pd.read_sql(sql_query, conn)
+        conn.close()
+        
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='查詢結果')
+        
+        output.seek(0)
+        
+        headers = {
+            'Content-Disposition': 'attachment; filename="query_result.xlsx"'
+        }
+        return StreamingResponse(output, headers=headers, media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    except Exception as e:
+        return HTMLResponse(content=f"<script>alert('匯出失敗: {str(e)}');</script>")
 
 if __name__ == "__main__":
     import uvicorn
