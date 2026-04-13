@@ -97,26 +97,37 @@ def get_db_connection():
     return pyodbc.connect(conn_str)
 
 def init_db_views():
-    """在啟動時自動建立/更新必要的 View"""
-    print("🚀 啟動中：正在初始化資料庫 View...")
+    """在啟動時檢查必要的 View，確保系統數據源正確"""
+    print("\n--- [資料庫初始化與診斷中] ---")
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
         
         for view_name, select_sql in VIEWS_SQL.items():
-            print(f"   檢查並建立視圖: {view_name}...")
-            # 使用 T-SQL 的 CREATE OR ALTER (如果支援) 或先 Drop 再 Create
-            full_sql = f"""
-            IF OBJECT_ID('{view_name}', 'V') IS NOT NULL DROP VIEW {view_name};
-            EXEC('CREATE VIEW {view_name} AS {select_sql}');
-            """
-            cursor.execute(full_sql)
+            try:
+                print(f"🔍 正在檢查並建立視圖: {view_name}...")
+                # 使用參考程式碼的 robust 建立方式
+                check_sql = f"""
+                IF OBJECT_ID('{view_name}', 'V') IS NULL 
+                BEGIN 
+                    EXEC('CREATE VIEW [{view_name}] AS {select_sql}');
+                    PRINT '   ✅ {view_name} 建立成功';
+                END
+                ELSE
+                BEGIN
+                    PRINT '   ℹ️ {view_name} 已存在，跳過建立';
+                END
+                """
+                cursor.execute(check_sql)
+                conn.commit()
+            except Exception as view_err:
+                print(f"   ⚠️ {view_name} 初始化失敗: {view_err}")
+                conn.rollback()
         
-        conn.commit()
         conn.close()
-        print("✅ 所有 View 初始化完畢！")
+        print("--- [診斷完備：View 初始化程序結束] ---\n")
     except Exception as e:
-        print(f"❌ 建立 View 失敗: {e}")
+        print(f"❌ 資料庫連線初始化失敗: {e}")
         print("💡 請確認 .env 中的資料庫權限是否允許 CREATE VIEW，以及 casper.dbo 下原始表是否存在。")
 
 # Gemini API 設定
@@ -173,11 +184,15 @@ async def handle_query(request: Request, user_input: str = Form(...)):
         df = pd.read_sql(generated_sql, conn)
         conn.close()
         
-        # 4. 處理數據 (自動加總)
+        # 4. 處理數據 (自動加總 - 整合自參考程式碼)
         numeric_cols = df.select_dtypes(include=['number']).columns
         if not df.empty and len(numeric_cols) > 0:
             sums = df[numeric_cols].sum().to_frame().T
             sums.index = ["合計"]
+            # 確保非數字欄位顯示為空字串而非 NaN
+            for col in df.columns:
+                if col not in numeric_cols:
+                    sums[col] = ""
             display_df = pd.concat([df, sums])
             summary_html = display_df.to_html(classes="table table-striped table-hover", index=False, border=0, na_rep="")
         else:
