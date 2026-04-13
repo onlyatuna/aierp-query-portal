@@ -73,8 +73,27 @@
 
 <script>
     function exportExcel() {
-        alert('匯出 Excel 功能開發中...');
-        // 未來將導向到後端下載 API
+        // 從 SQL 顯示區取得目前的 SQL 語句
+        const sqlText = document.querySelector('#sql-display code').innerText;
+        if (sqlText === '-- SQL 將在此處顯示' || !sqlText) {
+            alert('請先進行查詢再匯出 Excel');
+            return;
+        }
+
+        // 建立一個隱藏的 Form 來提交 POST 請求
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/export';
+
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'sql_query';
+        input.value = sqlText;
+
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
     }
 </script>
 
