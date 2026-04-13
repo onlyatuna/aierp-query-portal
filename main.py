@@ -34,6 +34,9 @@ TABLE_SCHEMAS = """
 
 5. 資料表名稱: 客商資料表
    欄位名稱: 對象編號, 名稱, 類型(客戶/廠商), 電話, 地址
+
+6. 資料表名稱: 應收明細表
+   欄位名稱: 收款編號, 立帳日期, 出貨編號, 帳款月份, 客戶代碼, 客戶名稱, 應收金額, 預收款日, 收款金額, 應收餘額
 """
 
 # 定義要建立的 View SQL (使用字典方便擴充)
@@ -63,6 +66,15 @@ VIEWS_SQL = {
         SELECT cusno AS 對象編號, cusnm AS 名稱, '客戶' AS 類型, tel AS 電話, addr AS 地址 FROM casper.dbo.cus
         UNION ALL
         SELECT purno AS 對象編號, purnm AS 名稱, '廠商' AS 類型, tel AS 電話, addr AS 地址 FROM casper.dbo.pur
+    """,
+    "應收明細表": """
+        SELECT rzno AS 收款編號, rzdate AS 立帳日期, sdno AS 出貨編號, yyyymm AS 帳款月份, 
+               custno AS 客戶代碼, custnm AS 客戶名稱, 
+               ISNULL(db_amt,0) + ISNULL(chjer.dbo.uf_rzh_rzexpamounta(rzno),0) AS 應收金額, 
+               date1 AS 預收款日, raamounta AS 收款金額, 
+               ISNULL(db_amt,0) + ISNULL(chjer.dbo.uf_rzh_rzexpamounta(rzno),0) - raamounta AS 應收餘額
+        FROM casper.dbo.RZH 
+        WHERE ISNULL(code_z,'N')<>'V'
     """
 }
 
