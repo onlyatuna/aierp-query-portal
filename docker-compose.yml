@@ -1,0 +1,20 @@
+services:
+  nl2sql-app:
+    image: ${IMAGE_TAG:-ghcr.io/onlyatuna/aierp-query-portal:latest}
+    container_name: nl2sql-app
+    restart: always
+    env_file:
+      - .env
+    ports:
+      # 直接掛載 8000 埠口供 Caddy 轉發或是外部存取 (如果開放 GCP 防火牆)
+      - "127.0.0.1:8000:8000"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 500M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
