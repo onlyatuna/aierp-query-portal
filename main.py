@@ -47,11 +47,13 @@ def get_db_connection():
     password = os.getenv('DB_PASSWORD')
     
     conn_str = (
-        f"DRIVER={{SQL Server}};"
+        f"DRIVER={{ODBC Driver 18 for SQL Server}};"
         f"SERVER={server};"
         f"DATABASE={database};"
         f"UID={username};"
         f"PWD={password};"
+        "Encrypt=yes;"
+        "TrustServerCertificate=yes;"
         "Connect Timeout=30;"
     )
     return pyodbc.connect(conn_str)
