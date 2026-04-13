@@ -6,8 +6,8 @@ services:
     env_file:
       - .env
     ports:
-      # 直接掛載 8000 埠口供 Caddy 轉發或是外部存取 (如果開放 GCP 防火牆)
-      - "127.0.0.1:8000:8000"
+      # 直接掛載 8000 埠口供 Caddy 轉發
+      - "8000:8000"
     deploy:
       resources:
         limits:
