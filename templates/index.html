@@ -1,170 +1,365 @@
+1p
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html class="light" lang="zh-TW">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Gemio ERP 智慧查詢系統</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <style>
-        body { background-color: #f8f9fa; padding-top: 50px; }
-        .query-container { max-width: 1000px; margin: auto; }
-        .result-area { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); min-height: 300px; }
-        
-        /* 骨架屏動畫 */
-        @keyframes shimmer {
-            0% { background-position: -468px 0; }
-            100% { background-position: 468px 0; }
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#001a42",
+                        "inverse-on-surface": "#eff1f3",
+                        "tertiary-fixed-dim": "#ffb786",
+                        "secondary-container": "#d0e1fb",
+                        "primary-fixed": "#d8e2ff",
+                        "outline": "#727785",
+                        "inverse-primary": "#adc6ff",
+                        "tertiary-fixed": "#ffdcc6",
+                        "surface-bright": "#f7f9fb",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-container": "#fefcff",
+                        "background": "#f7f9fb",
+                        "secondary": "#505f76",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#2170e4",
+                        "tertiary": "#924700",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#b75b00",
+                        "surface-container-low": "#f2f4f6",
+                        "surface": "#f7f9fb",
+                        "surface-variant": "#e0e3e5",
+                        "secondary-fixed": "#d3e4fe",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "on-tertiary-fixed-variant": "#723600",
+                        "on-tertiary-fixed": "#311400",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "outline-variant": "#c2c6d6",
+                        "on-error": "#ffffff",
+                        "on-background": "#191c1e",
+                        "surface-tint": "#005ac2",
+                        "on-primary-fixed-variant": "#004395",
+                        "on-secondary-container": "#54647a",
+                        "surface-container-high": "#e6e8ea",
+                        "on-tertiary": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "inverse-surface": "#2d3133",
+                        "primary-fixed-dim": "#adc6ff",
+                        "primary": "#0058be",
+                        "on-secondary-fixed": "#0b1c30",
+                        "on-tertiary-container": "#fffbff",
+                        "surface-container": "#eceef0",
+                        "surface-dim": "#d8dadc",
+                        "on-surface-variant": "#424754",
+                        "error": "#ba1a1a",
+                        "on-primary": "#ffffff"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
+                    }
+                }
+            }
         }
-        .skeleton-loader {
-            height: 20px;
-            width: 100%;
-            background: #f6f7f8;
-            background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
-            background-repeat: no-repeat;
-            background-size: 800px 104px;
-            display: inline-block;
-            position: relative;
-            animation: shimmer 1.5s infinite linear;
-            border-radius: 4px;
-            margin-bottom: 10px;
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
         }
 
-        /* HTMX 載入狀態控制 */
-        .loading-indicator { display: none; }
-        .htmx-request .loading-indicator { display: block; }
-        .htmx-request#result-content { display: none; } /* 載入時隱藏舊結果 */
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+
+        .tnum {
+            font-feature-settings: "tnum";
+        }
+
+        /* Pandas Table Styling */
+        .table {
+            width: 100%;
+            text-align: left;
+            border-collapse: collapse;
+            min-width: 800px;
+            white-space: nowrap;
+        }
+
+        .table th {
+            padding: 0.75rem 1rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            color: #54647a;
+            border-bottom: 1px solid rgba(194, 198, 214, 0.2);
+            background-color: rgba(242, 244, 246, 0.5);
+        }
+
+        .table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(194, 198, 214, 0.1);
+            color: #191c1e;
+            font-size: 0.875rem;
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(242, 244, 246, 0.3);
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #f2f4f6;
+        }
+
+        /* HTMX Loading States */
+        .htmx-request.loading-indicator {
+            display: block !important;
+        }
+
+        .htmx-request#result-content {
+            display: none !important;
+        }
+
+        .loading-indicator {
+            display: none;
+        }
     </style>
 </head>
-<body>
 
-<div class="container query-container">
-    <!-- 1. 抬頭 -->
-    <div class="text-center mb-5">
-        <h1 class="display-5 fw-bold text-primary">Gemio ERP 智慧查詢</h1>
-        <p class="text-muted">用白話文與您的 ERP 對話</p>
-    </div>
+<body class="bg-surface text-on-surface min-h-screen flex antialiased">
+    <!-- Top Navigation (Mobile) -->
+    <header
+        class="md:hidden flex items-center justify-between px-6 w-full fixed top-0 right-0 left-0 z-40 h-16 bg-white/70 backdrop-blur-md shadow-[0_12px_32px_rgba(25,28,30,0.04)] bg-slate-50 border-none">
+        <div class="text-xl font-black text-slate-900 uppercase tracking-wider font-headline">Gemio ERP</div>
+        <div class="flex gap-4 items-center">
+            <span class="material-symbols-outlined text-on-surface-variant">menu</span>
+        </div>
+    </header>
 
-    <!-- 2. 輸入框 -->
-    <div class="card mb-4 shadow-sm">
-        <div class="card-body">
-            <!-- API Key 輸入欄位 -->
-            <div class="mb-3">
-                <label for="api-key-input" class="form-label fw-semibold">🔑 Gemini API Key</label>
-                <input type="password" id="api-key-input" name="api_key" class="form-control" placeholder="請輸入您的 Gemini API Key" required>
-                <div class="form-text">您的 API Key 僅用於本次查詢，不會被伺服器儲存。<a href="https://aistudio.google.com/apikey" target="_blank">取得 API Key</a></div>
+    <!-- SideNavBar -->
+    <aside
+        class="hidden md:flex flex-col h-screen w-64 z-50 fixed left-0 top-0 bg-surface-container-low border-r border-none p-4 font-body">
+        <div class="mb-8">
+            <div class="text-lg font-bold text-on-surface mb-1 font-headline">Gemio ERP</div>
+            <div class="text-[13px] font-medium text-on-surface-variant flex items-center gap-2">
+                <span class="material-symbols-outlined fill text-tertiary-container text-sm">auto_awesome</span>
+                智慧查詢系統
             </div>
-            <!-- 查詢輸入框 -->
-            <form hx-post="/query" 
-                  hx-target="#result-content" 
-                  hx-indicator="#skeleton-area"
-                  hx-disabled-elt="button, input">
-                <input type="hidden" name="api_key" id="api-key-hidden">
-                <div class="input-group">
-                    <input type="text" name="user_input" class="form-control form-control-lg" placeholder="例如：哪些產品庫存快沒了？" required>
-                    <button class="btn btn-primary btn-lg px-4" type="submit">
-                        <span id="btn-text">查詢</span>
+        </div>
+        <nav class="flex-1 flex flex-col gap-2">
+            <a class="flex items-center gap-3 bg-surface-container-lowest text-primary rounded-lg px-4 py-2.5 shadow-[0_12px_32px_rgba(25,28,30,0.04)] font-medium text-[13px] transition-colors duration-150"
+                href="#">
+                <span class="material-symbols-outlined">database</span>
+                查詢 (Query)
+            </a>
+
+            <div class="mt-4 mb-2">
+                <span class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider px-4">支援的資料表</span>
+            </div>
+            <div class="flex flex-col gap-1 px-4 text-xs text-on-surface-variant">
+                <div
+                    class="flex justify-between items-center py-1.5 border-b border-outline-variant/10 hover:text-on-surface transition-colors cursor-default">
+                    <span>科目餘額表</span><span
+                        class="bg-surface-container-highest px-1.5 py-0.5 rounded text-[10px]">會計</span>
+                </div>
+                <div
+                    class="flex justify-between items-center py-1.5 border-b border-outline-variant/10 hover:text-on-surface transition-colors cursor-default">
+                    <span>採購明細表</span><span
+                        class="bg-surface-container-highest px-1.5 py-0.5 rounded text-[10px]">進貨</span>
+                </div>
+                <div
+                    class="flex justify-between items-center py-1.5 border-b border-outline-variant/10 hover:text-on-surface transition-colors cursor-default">
+                    <span>進貨明細表</span><span
+                        class="bg-surface-container-highest px-1.5 py-0.5 rounded text-[10px]">進貨</span>
+                </div>
+                <div
+                    class="flex justify-between items-center py-1.5 border-b border-outline-variant/10 hover:text-on-surface transition-colors cursor-default">
+                    <span>應收明細表</span><span
+                        class="bg-surface-container-highest px-1.5 py-0.5 rounded text-[10px]">帳務</span>
+                </div>
+            </div>
+        </nav>
+
+        <div class="mt-auto flex flex-col gap-4">
+            <div class="bg-surface-container-lowest p-3 rounded-lg shadow-[0_12px_32px_rgba(25,28,30,0.04)]">
+                <label
+                    class="text-[10px] uppercase tracking-wider text-on-surface-variant font-semibold mb-2 block">System
+                    Configuration</label>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="material-symbols-outlined text-on-surface-variant text-sm">key</span>
+                    <input id="api-key-input"
+                        class="bg-transparent border-none text-xs w-full focus:ring-0 text-on-surface-variant outline-none"
+                        type="password" placeholder="Gemini API Key" />
+                </div>
+                <div class="text-[10px] text-on-surface-variant">
+                    <a href="https://aistudio.google.com/apikey" target="_blank"
+                        class="text-primary hover:underline flex items-center gap-1">
+                        <span class="material-symbols-outlined" style="font-size: 12px;">open_in_new</span>
+                        取得 API Key
+                    </a>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main
+        class="flex-1 md:ml-64 p-6 md:p-8 mt-16 md:mt-0 max-w-[1600px] mx-auto w-full flex flex-col gap-8 h-screen overflow-y-auto">
+        <!-- Main Content Header -->
+        <header class="flex items-center justify-between">
+            <div class="flex items-center gap-2 text-sm text-on-surface-variant">
+                <span class="hover:text-on-surface cursor-pointer transition-colors">Workspace</span>
+                <span class="material-symbols-outlined text-sm">chevron_right</span>
+                <span class="text-on-surface font-medium">Smart Query</span>
+            </div>
+            <div
+                class="flex items-center gap-2 bg-surface-container-lowest px-3 py-1.5 rounded-full shadow-[0_12px_32px_rgba(25,28,30,0.04)]">
+                <div class="w-2 h-2 rounded-full bg-[#10b981]"></div>
+                <span class="text-xs font-medium text-on-surface-variant tracking-wide">System Status: Ready</span>
+            </div>
+        </header>
+
+        <!-- Command Palette Query Area -->
+        <form hx-post="/query" hx-target="#result-content" hx-indicator="#skeleton-area" hx-disabled-elt="button, input"
+            class="bg-surface-container-lowest rounded-xl shadow-[0_12px_32px_rgba(25,28,30,0.04)] p-1 flex items-center focus-within:bg-secondary-container/20 transition-colors duration-200 shrink-0">
+            <input type="hidden" name="api_key" id="api-key-hidden">
+            <div class="pl-4 pr-2 text-primary">
+                <span class="material-symbols-outlined">auto_awesome</span>
+            </div>
+            <input name="user_input" required
+                class="flex-1 bg-transparent border-none text-base font-body focus:ring-0 text-on-surface placeholder:text-on-surface-variant/50 py-4 outline-none w-full"
+                placeholder="例如：哪些產品庫存快沒了？" type="text" />
+            <button type="submit"
+                class="bg-gradient-to-br from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2 mr-1">
+                <span>查詢</span>
+                <span class="material-symbols-outlined text-sm">keyboard_return</span>
+            </button>
+        </form>
+
+        <!-- Results Card & Data Table -->
+        <section
+            class="bg-surface-container-lowest rounded-xl shadow-[0_12px_32px_rgba(25,28,30,0.04)] flex flex-col flex-1 min-h-[400px]">
+            <div
+                class="flex items-center justify-between p-4 border-b border-outline-variant/20 bg-surface-container-lowest/70 backdrop-blur-md sticky top-0 z-10 rounded-t-xl">
+                <h2 class="text-lg font-semibold font-headline text-on-surface">查詢結果</h2>
+                <div class="flex items-center gap-3">
+                    <button type="button" onclick="exportExcel()"
+                        class="bg-gradient-to-br from-primary to-primary-container text-on-primary px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">download</span>
+                        匯出 Excel
                     </button>
                 </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- 3. 查詢結果區 (內建骨架屏) -->
-    <div class="result-area mb-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="mb-0">查詢結果</h4>
-            <button class="btn btn-outline-success btn-sm" onclick="exportExcel()">轉出 Excel</button>
-        </div>
-        
-        <!-- 骨架屏區域：僅在發送請求時顯示 -->
-        <div id="skeleton-area" class="loading-indicator">
-            <div class="skeleton-loader" style="width: 30%; height: 30px; margin-bottom: 20px;"></div>
-            <div class="skeleton-loader"></div>
-            <div class="skeleton-loader"></div>
-            <div class="skeleton-loader"></div>
-            <div class="skeleton-loader" style="width: 80%;"></div>
-            <div class="mt-4">
-                <div class="skeleton-loader" style="height: 100px;"></div>
             </div>
-        </div>
+            <div class="p-4 flex-1 overflow-auto bg-white rounded-b-xl">
+                <!-- 骨架屏 -->
+                <div id="skeleton-area" class="loading-indicator w-full h-full">
+                    <div class="animate-pulse flex flex-col gap-4">
+                        <div class="h-10 bg-surface-container-high rounded w-full"></div>
+                        <div class="h-10 bg-surface-container-high rounded w-full"></div>
+                        <div class="h-10 bg-surface-container-high rounded w-full"></div>
+                        <div class="h-10 bg-surface-container-high rounded w-full"></div>
+                        <div class="h-10 bg-surface-container-high rounded w-full"></div>
+                    </div>
+                </div>
 
-        <div id="result-content" class="table-responsive">
-            <p class="text-center text-muted py-5">請在上方輸入框進行查詢</p>
-        </div>
-    </div>
+                <div id="result-content" class="w-full h-full">
+                    <div class="flex flex-col items-center justify-center py-16 text-on-surface-variant h-full">
+                        <span class="material-symbols-outlined text-5xl mb-4 opacity-30">table_chart</span>
+                        <p>請在上方輸入框進行查詢</p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-    <!-- 4. SQL 語句區 -->
-    <div class="card mb-4 border-info">
-        <div class="card-header bg-info text-white">生成的 SQL 語法</div>
-        <div class="card-body">
-            <pre id="sql-display" class="bg-light p-3"><code>-- SQL 將在此處顯示</code></pre>
-        </div>
-    </div>
+        <!-- SQL Observatory (Bottom Collapsible) -->
+        <section
+            class="bg-surface-container-lowest rounded-xl shadow-[0_12px_32px_rgba(25,28,30,0.04)] overflow-hidden shrink-0">
+            <div class="p-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-primary">code_blocks</span>
+                    <h3 class="text-sm font-semibold font-headline text-on-surface">SQL 生成結果</h3>
+                    <span
+                        class="bg-tertiary-container text-on-tertiary-container text-[10px] px-2 py-0.5 rounded-full font-medium tracking-wide">AI
+                        Generated</span>
+                </div>
+            </div>
+            <div
+                class="p-4 bg-[#1e293b] text-[#e2e8f0] font-mono text-sm overflow-x-auto rounded-b-xl border-t border-outline-variant/10">
+                <pre id="sql-display" class="m-0"><code>-- SQL 將在此處顯示</code></pre>
+            </div>
+        </section>
+    </main>
 
-    <!-- 5. 可查詢的表 -->
-    <div class="card mb-5">
-        <div class="card-header">目前支援查詢的資料表</div>
-        <div class="card-body">
-            <ul class="list-group list-group-flush" id="table-list">
-                <li class="list-group-item d-flex justify-content-between">科目餘額表 <span class="badge bg-secondary">會計</span></li>
-                <li class="list-group-item d-flex justify-content-between">採購明細表 <span class="badge bg-secondary">進貨</span></li>
-                <li class="list-group-item d-flex justify-content-between">進貨明細表 <span class="badge bg-secondary">進貨</span></li>
-                <li class="list-group-item d-flex justify-content-between">應收明細表 <span class="badge bg-info">帳務</span></li>
-            </ul>
-        </div>
-    </div>
-</div>
+    <script>
+        function exportExcel() {
+            const sqlDisplay = document.querySelector('#sql-display code');
+            const sqlText = sqlDisplay ? sqlDisplay.innerText : '';
+            if (sqlText === '-- SQL 將在此處顯示' || !sqlText) {
+                alert('請先進行查詢再匯出 Excel');
+                return;
+            }
 
-<script>
-    function exportExcel() {
-        // 從 SQL 顯示區取得目前的 SQL 語句
-        const sqlText = document.querySelector('#sql-display code').innerText;
-        if (sqlText === '-- SQL 將在此處顯示' || !sqlText) {
-            alert('請先進行查詢再匯出 Excel');
-            return;
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/export';
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'sql_query';
+            input.value = sqlText;
+
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
         }
 
-        // 建立一個隱藏的 Form 來提交 POST 請求
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '/export';
+        const apiKeyInput = document.getElementById('api-key-input');
+        const apiKeyHidden = document.getElementById('api-key-hidden');
 
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'sql_query';
-        input.value = sqlText;
+        // 頁面載入時從 localStorage 恢復 API Key
+        const savedKey = localStorage.getItem('gemini_api_key');
+        if (savedKey && apiKeyInput) {
+            apiKeyInput.value = savedKey;
+            if (apiKeyHidden) apiKeyHidden.value = savedKey;
+        }
 
-        form.appendChild(input);
-        document.body.appendChild(form);
-        form.submit();
-        document.body.removeChild(form);
-    }
+        if (apiKeyInput) {
+            apiKeyInput.addEventListener('input', function () {
+                if (apiKeyHidden) apiKeyHidden.value = this.value;
+                localStorage.setItem('gemini_api_key', this.value);
+            });
+        }
 
-    // === API Key 管理 ===
-    const apiKeyInput = document.getElementById('api-key-input');
-    const apiKeyHidden = document.getElementById('api-key-hidden');
-
-    // 頁面載入時：從 localStorage 恢復上次的 API Key
-    const savedKey = localStorage.getItem('gemini_api_key');
-    if (savedKey) {
-        apiKeyInput.value = savedKey;
-        apiKeyHidden.value = savedKey;
-    }
-
-    // 輸入時：同步到 hidden input 並存入 localStorage
-    apiKeyInput.addEventListener('input', function() {
-        apiKeyHidden.value = this.value;
-        localStorage.setItem('gemini_api_key', this.value);
-    });
-
-    // 表單提交前：確保 hidden input 有最新的值
-    document.querySelector('form[hx-post="/query"]').addEventListener('htmx:configRequest', function(evt) {
-        apiKeyHidden.value = apiKeyInput.value;
-    });
-</script>
-
+        document.body.addEventListener('htmx:configRequest', function (evt) {
+            if (evt.detail.elt.tagName === 'FORM') {
+                const hidden = evt.detail.elt.querySelector('#api-key-hidden');
+                if (hidden && apiKeyInput) {
+                    hidden.value = apiKeyInput.value;
+                }
+            }
+        });
+    </script>
 </body>
+
 </html>
