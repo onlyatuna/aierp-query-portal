@@ -95,8 +95,32 @@ jobs:
             APP_PORT=8000
             EOF
             
-            # 重啟服務
-            IMAGE_TAG=${{ env.IMAGE_TAG }} docker compose up -d --force-recreate --remove-orphans
+            # 重啟服務 (使用健康檢查輪詢)
+            echo "Recreating app container..."
+            IMAGE_TAG=${{ env.IMAGE_TAG }} docker compose up -d --no-deps --force-recreate --remove-orphans
+            
+            echo "Waiting for container to become healthy..."
+            MAX_WAIT=120
+            ELAPSED=0
+            while [ $ELAPSED -lt $MAX_WAIT ]; do
+              # 取得容器健康狀態 (服務名稱為 nl2sql-app)
+              STATUS=$(docker inspect --format='{{.State.Health.Status}}' nl2sql-app 2>/dev/null || echo "starting")
+              echo "  [$ELAPSED s] Container health: $STATUS"
+              if [ "$STATUS" = "healthy" ]; then
+                echo "✅ ERP Portal is healthy!"
+                break
+              fi
+              sleep 5
+              ELAPSED=$((ELAPSED + 5))
+            done
+            
+            if [ "$STATUS" != "healthy" ]; then
+              echo "⚠️ Warning: Container did not become healthy within ${MAX_WAIT}s."
+              docker compose logs --tail=30 nl2sql-app
+            fi
+            
+            # 強制通知 Caddy 重新連結 (Caddy 定義在 ~/shop-app)
+            cd ~/shop-app && docker compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile || true
             
             # 清理閒置的 Image 以節省硬碟空間
             docker image prune -f

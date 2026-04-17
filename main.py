@@ -89,6 +89,10 @@ async def index(request: Request):
         request=request, name="index.html", context={}
     )
 
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
 @app.post("/query")
 async def handle_query(request: Request, user_input: str = Form(...), api_key: str = Form(...)):
     try:
