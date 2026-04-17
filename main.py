@@ -20,17 +20,10 @@ templates = Jinja2Templates(directory="templates")
 
 # 定義資料表 Schema (用於 Prompt)
 TABLE_SCHEMAS = """
-1. 資料表名稱: 科目餘額表
-   欄位名稱: 會計科目, 科目名稱, 科目餘額
-
-2. 資料表名稱: 採購明細表
-   欄位名稱: 採購編號, 項次, 採購日期, 預定交期, 產品編號, 產品名稱, 採購量, 進貨量, 結案量, 未交量
-
-3. 資料表名稱: 進貨明細表 (欄位必須精確)
-   欄位名稱: 採購編號, 項次, 採購日期, 廠商編號, 廠商名稱, 產品編號, 產品名稱, 數量, 單價, 金額
-
-4. 資料表名稱: 應收明細表
-   欄位名稱: 收款編號, 立帳日期, 出貨編號, 帳款月份, 客戶代碼, 客戶名稱, 應收金額, 預收款日, 收款金額, 應收餘額
+1. [科目餘額表] ([會計科目], [科目名稱], [科目餘額])
+2. [採購明細表] ([採購編號], [項次], [採購日期], [預定交期], [產品編號], [產品名稱], [採購量], [進貨量], [結案量], [未交量])
+3. [進貨明細表] ([採購編號], [項次], [採購日期], [廠商編號], [廠商名稱], [產品編號], [產品名稱], [數量], [單價], [金額])
+4. [應收明細表] ([收款編號], [立帳日期], [出貨編號], [帳款月份], [客戶代碼], [客戶名稱], [應收金額], [預收款日], [收款金額], [應收餘額])
 """
 
 # AI 生成 SQL 的指導原則 (System Prompt 補充)
@@ -101,28 +94,23 @@ async def handle_query(request: Request, user_input: str = Form(...), api_key: s
     try:
         # 1. 準備 Prompt
         prompt = f"""
-        你是一個 SQL 專家。請根據以下資料表結構，將使用者的自然語言問題轉換為 T-SQL 查詢語句。
-        資料庫類型: Microsoft SQL Server
+你現在是生產環境的 SQL 專家。請精確地將問題轉換為 T-SQL。
+【嚴格規則】:
+1. 僅使用下方提供的資料表與欄位，禁止憑直覺猜測名稱。
+2. 所有的資料表名稱與欄位名稱必須使用 [中括號] 包裹。
+3. 針對「進貨記錄」或「採購記錄」，請確認是使用 [採購日期] 還是 [預定交期]。
+
+【資料結構】:
+{TABLE_SCHEMAS}
+
+使用者問題: "{user_input}"
+SQL:
+"""
         
-        {TABLE_SCHEMAS}
-        
-        {SQL_HINT}
-        
-        使用者問題: "{user_input}"
-        
-        注意事項:
-        - 僅回傳 SQL 語句，不要有任何解釋文字。
-        - 欄位名稱請儘量使用中文別名。
-        - 務必使用 [ ] 包裹所有中文名稱。
-        - SQL 語法必須符合 T-SQL 規範。
-        
-        SQL:
-        """
-        
-        # 2. 呼叫 Gemini (使用前端傳入的 API Key 動態建立模型)
+        # 2. 呼叫 Gemini
         try:
             genai.configure(api_key=api_key)
-            user_model = genai.GenerativeModel('gemini-2.5-flash')
+            user_model = genai.GenerativeModel('gemini-1.5-flash')
             response = user_model.generate_content(prompt)
             generated_sql = clean_sql(response.text)
         except Exception as ai_err:
