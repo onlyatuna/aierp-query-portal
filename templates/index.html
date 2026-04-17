@@ -1,4 +1,3 @@
-1p
 <!DOCTYPE html>
 <html class="light" lang="zh-TW">
 
@@ -114,6 +113,7 @@
             color: #54647a;
             border-bottom: 1px solid rgba(194, 198, 214, 0.2);
             background-color: rgba(242, 244, 246, 0.5);
+            text-align: left;
         }
 
         .table td {
@@ -121,6 +121,13 @@
             border-bottom: 1px solid rgba(194, 198, 214, 0.1);
             color: #191c1e;
             font-size: 0.875rem;
+            text-align: left;
+        }
+
+        /* pandas 數字欄預設 right-align，讓對應的 th 也右對齊 */
+        .table th:has(+ th[align="right"]),
+        .table td[align="right"] {
+            text-align: right;
         }
 
         .table-striped tbody tr:nth-of-type(odd) {
@@ -131,19 +138,34 @@
             background-color: #f2f4f6;
         }
 
+        /* Skeleton shimmer animation */
+        @keyframes skeleton-shimmer {
+            0% { background-position: -600px 0; }
+            100% { background-position: 600px 0; }
+        }
+
+        .skeleton-cell {
+            background: linear-gradient(
+                90deg,
+                #e8eaec 25%,
+                #f4f5f7 50%,
+                #e8eaec 75%
+            );
+            background-size: 600px 100%;
+            animation: skeleton-shimmer 1.4s ease-in-out infinite;
+            border-radius: 6px;
+        }
+
         /* HTMX Loading States */
-        /* 當表單正在請求時，控制內部的顯示狀態 */
-        form.htmx-request + section #skeleton-area,
-        .htmx-indicator.htmx-request {
+        .htmx-indicator {
+            display: none;
+        }
+        .htmx-request .htmx-indicator,
+        .htmx-request.htmx-indicator {
             display: block !important;
         }
-
-        form.htmx-request + section #result-content {
+        .htmx-request #result-content {
             display: none !important;
-        }
-
-        .loading-indicator {
-            display: none;
         }
     </style>
 </head>
@@ -242,7 +264,7 @@
         </header>
 
         <!-- Command Palette Query Area -->
-        <form hx-post="/query" hx-target="#result-content" hx-indicator="#skeleton-area" hx-disabled-elt="button, input"
+        <form hx-post="/query" hx-target="#result-content" hx-indicator="#skeleton-area" hx-swap="innerHTML" hx-disabled-elt="button, input"
             class="bg-surface-container-lowest rounded-xl shadow-[0_12px_32px_rgba(25,28,30,0.04)] p-1 flex items-center focus-within:bg-secondary-container/20 transition-colors duration-200 shrink-0">
             <input type="hidden" name="api_key" id="api-key-hidden">
             <div class="pl-4 pr-2 text-primary">
@@ -274,13 +296,91 @@
             </div>
             <div class="p-4 flex-1 overflow-auto bg-white rounded-b-xl">
                 <!-- 骨架屏 -->
-                <div id="skeleton-area" class="loading-indicator w-full h-full">
-                    <div class="animate-pulse flex flex-col gap-4">
-                        <div class="h-10 bg-surface-container-high rounded w-full"></div>
-                        <div class="h-10 bg-surface-container-high rounded w-full"></div>
-                        <div class="h-10 bg-surface-container-high rounded w-full"></div>
-                        <div class="h-10 bg-surface-container-high rounded w-full"></div>
-                        <div class="h-10 bg-surface-container-high rounded w-full"></div>
+                <div id="skeleton-area" class="htmx-indicator w-full">
+                    <!-- 模擬表頭 -->
+                    <div class="flex gap-3 mb-3 px-1 pt-1">
+                        <div class="skeleton-cell h-5 w-24"></div>
+                        <div class="skeleton-cell h-5 w-32"></div>
+                        <div class="skeleton-cell h-5 w-28"></div>
+                        <div class="skeleton-cell h-5 w-20"></div>
+                        <div class="skeleton-cell h-5 w-36"></div>
+                        <div class="skeleton-cell h-5 w-24"></div>
+                    </div>
+                    <div class="border-b border-outline-variant/30 mb-2"></div>
+                    <!-- 模擬資料行 -->
+                    <div class="flex flex-col gap-2">
+                        <!-- Row 1 -->
+                        <div class="flex gap-3 px-1 py-1.5">
+                            <div class="skeleton-cell h-4 w-20"></div>
+                            <div class="skeleton-cell h-4 w-28"></div>
+                            <div class="skeleton-cell h-4 w-24" style="animation-delay: 0.05s"></div>
+                            <div class="skeleton-cell h-4 w-16" style="animation-delay: 0.1s"></div>
+                            <div class="skeleton-cell h-4 w-32" style="animation-delay: 0.15s"></div>
+                            <div class="skeleton-cell h-4 w-20" style="animation-delay: 0.2s"></div>
+                        </div>
+                        <!-- Row 2 -->
+                        <div class="flex gap-3 px-1 py-1.5 bg-surface-container-low/50 rounded">
+                            <div class="skeleton-cell h-4 w-24" style="animation-delay: 0.1s"></div>
+                            <div class="skeleton-cell h-4 w-20" style="animation-delay: 0.15s"></div>
+                            <div class="skeleton-cell h-4 w-32" style="animation-delay: 0.2s"></div>
+                            <div class="skeleton-cell h-4 w-28" style="animation-delay: 0.05s"></div>
+                            <div class="skeleton-cell h-4 w-16" style="animation-delay: 0.25s"></div>
+                            <div class="skeleton-cell h-4 w-24" style="animation-delay: 0.1s"></div>
+                        </div>
+                        <!-- Row 3 -->
+                        <div class="flex gap-3 px-1 py-1.5">
+                            <div class="skeleton-cell h-4 w-16" style="animation-delay: 0.2s"></div>
+                            <div class="skeleton-cell h-4 w-32" style="animation-delay: 0.05s"></div>
+                            <div class="skeleton-cell h-4 w-20" style="animation-delay: 0.1s"></div>
+                            <div class="skeleton-cell h-4 w-24" style="animation-delay: 0.15s"></div>
+                            <div class="skeleton-cell h-4 w-28" style="animation-delay: 0.2s"></div>
+                            <div class="skeleton-cell h-4 w-16" style="animation-delay: 0.25s"></div>
+                        </div>
+                        <!-- Row 4 -->
+                        <div class="flex gap-3 px-1 py-1.5 bg-surface-container-low/50 rounded">
+                            <div class="skeleton-cell h-4 w-28" style="animation-delay: 0.15s"></div>
+                            <div class="skeleton-cell h-4 w-16" style="animation-delay: 0.2s"></div>
+                            <div class="skeleton-cell h-4 w-24" style="animation-delay: 0.05s"></div>
+                            <div class="skeleton-cell h-4 w-20" style="animation-delay: 0.1s"></div>
+                            <div class="skeleton-cell h-4 w-32" style="animation-delay: 0.15s"></div>
+                            <div class="skeleton-cell h-4 w-28" style="animation-delay: 0.2s"></div>
+                        </div>
+                        <!-- Row 5 -->
+                        <div class="flex gap-3 px-1 py-1.5">
+                            <div class="skeleton-cell h-4 w-20" style="animation-delay: 0.25s"></div>
+                            <div class="skeleton-cell h-4 w-24" style="animation-delay: 0.1s"></div>
+                            <div class="skeleton-cell h-4 w-16" style="animation-delay: 0.15s"></div>
+                            <div class="skeleton-cell h-4 w-32" style="animation-delay: 0.2s"></div>
+                            <div class="skeleton-cell h-4 w-20" style="animation-delay: 0.05s"></div>
+                            <div class="skeleton-cell h-4 w-28" style="animation-delay: 0.1s"></div>
+                        </div>
+                        <!-- Row 6 -->
+                        <div class="flex gap-3 px-1 py-1.5 bg-surface-container-low/50 rounded">
+                            <div class="skeleton-cell h-4 w-32" style="animation-delay: 0.1s"></div>
+                            <div class="skeleton-cell h-4 w-28" style="animation-delay: 0.15s"></div>
+                            <div class="skeleton-cell h-4 w-24" style="animation-delay: 0.2s"></div>
+                            <div class="skeleton-cell h-4 w-16" style="animation-delay: 0.05s"></div>
+                            <div class="skeleton-cell h-4 w-20" style="animation-delay: 0.25s"></div>
+                            <div class="skeleton-cell h-4 w-32" style="animation-delay: 0.1s"></div>
+                        </div>
+                        <!-- Row 7 -->
+                        <div class="flex gap-3 px-1 py-1.5">
+                            <div class="skeleton-cell h-4 w-24" style="animation-delay: 0.2s"></div>
+                            <div class="skeleton-cell h-4 w-16" style="animation-delay: 0.1s"></div>
+                            <div class="skeleton-cell h-4 w-28" style="animation-delay: 0.05s"></div>
+                            <div class="skeleton-cell h-4 w-32" style="animation-delay: 0.15s"></div>
+                            <div class="skeleton-cell h-4 w-24" style="animation-delay: 0.2s"></div>
+                            <div class="skeleton-cell h-4 w-20" style="animation-delay: 0.25s"></div>
+                        </div>
+                    </div>
+                    <!-- AI 思考中提示 -->
+                    <div class="flex items-center gap-2 mt-6 px-1">
+                        <div class="flex gap-1">
+                            <span class="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce" style="animation-delay: 0s"></span>
+                            <span class="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce" style="animation-delay: 0.15s"></span>
+                            <span class="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce" style="animation-delay: 0.3s"></span>
+                        </div>
+                        <span class="text-xs text-on-surface-variant/60">AI 正在分析您的問題並生成 SQL...</span>
                     </div>
                 </div>
 
@@ -360,6 +460,27 @@
                     hidden.value = apiKeyInput.value;
                 }
             }
+        });
+
+        // 查詢結果注入後，自動同步 th 對齊方式與 td 保持一致
+        document.body.addEventListener('htmx:afterSwap', function () {
+            const table = document.querySelector('#result-content .table');
+            if (!table) return;
+
+            const headerRow = table.querySelector('thead tr');
+            const firstDataRow = table.querySelector('tbody tr');
+            if (!headerRow || !firstDataRow) return;
+
+            const ths = headerRow.querySelectorAll('th');
+            const tds = firstDataRow.querySelectorAll('td');
+
+            ths.forEach(function (th, i) {
+                if (tds[i]) {
+                    const tdAlign = tds[i].getAttribute('align') ||
+                                    window.getComputedStyle(tds[i]).textAlign;
+                    th.style.textAlign = (tdAlign === 'right') ? 'right' : 'left';
+                }
+            });
         });
     </script>
 </body>
