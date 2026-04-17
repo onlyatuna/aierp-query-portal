@@ -132,11 +132,13 @@
         }
 
         /* HTMX Loading States */
-        .htmx-request.loading-indicator {
+        /* 當表單正在請求時，控制內部的顯示狀態 */
+        form.htmx-request + section #skeleton-area,
+        .htmx-indicator.htmx-request {
             display: block !important;
         }
 
-        .htmx-request#result-content {
+        form.htmx-request + section #result-content {
             display: none !important;
         }
 

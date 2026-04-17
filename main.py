@@ -26,8 +26,8 @@ TABLE_SCHEMAS = """
 2. 資料表名稱: 採購明細表
    欄位名稱: 採購編號, 項次, 採購日期, 預定交期, 產品編號, 產品名稱, 採購量, 進貨量, 結案量, 未交量
 
-3. 資料表名稱: 進貨明細表
-   欄位名稱: 進貨單號, 進貨日期, 廠商名稱, 產品編號, 產品名稱, 進貨數量, 進貨單價, 進貨小計
+3. 資料表名稱: 進貨明細表 (欄位必須精確)
+   欄位名稱: 採購編號, 項次, 進貨日期, 廠商編號, 廠商名稱, 產品編號, 產品名稱, 數量, 單價, 金額
 
 4. 資料表名稱: 應收明細表
    欄位名稱: 收款編號, 立帳日期, 出貨編號, 帳款月份, 客戶代碼, 客戶名稱, 應收金額, 預收款日, 收款金額, 應收餘額
@@ -125,34 +125,59 @@ async def handle_query(request: Request, user_input: str = Form(...), api_key: s
         df = pd.read_sql(generated_sql, conn)
         conn.close()
         
-        # 4. 處理數據 (自動加總 - 整合自參考程式碼)
-        numeric_cols = df.select_dtypes(include=['number']).columns
-        if not df.empty and len(numeric_cols) > 0:
-            sums = df[numeric_cols].sum().to_frame().T
-            sums.index = ["合計"]
-            # 確保非數字欄位顯示為空字串而非 NaN
-            for col in df.columns:
-                if col not in numeric_cols:
-                    sums[col] = ""
-            display_df = pd.concat([df, sums])
-            summary_html = display_df.to_html(classes="table table-striped table-hover", index=False, border=0, na_rep="")
+        # 4. 處理數據與生成 HTML
+        if df.empty:
+            summary_html = """
+            <div class="flex flex-col items-center justify-center py-16 text-on-surface-variant">
+                <span class="material-symbols-outlined text-5xl mb-4 opacity-30 text-primary">search_off</span>
+                <p class="font-medium">查無符合條件的資料</p>
+                <p class="text-xs opacity-50 mt-1">請試著換個問法，或確認資料庫是否有相關記錄。</p>
+            </div>
+            """
         else:
-            summary_html = df.to_html(classes="table table-striped table-hover", index=False, border=0, na_rep="")
+            # 自動加總邏輯
+            numeric_cols = df.select_dtypes(include=['number']).columns
+            if len(numeric_cols) > 0:
+                sums = df[numeric_cols].sum().to_frame().T
+                sums.index = ["合計"]
+                for col in df.columns:
+                    if col not in numeric_cols:
+                        sums[col] = ""
+                display_df = pd.concat([df, sums])
+                summary_html = display_df.to_html(classes="table table-striped table-hover", index=False, border=0, na_rep="")
+            else:
+                summary_html = df.to_html(classes="table table-striped table-hover", index=False, border=0, na_rep="")
 
         return HTMLResponse(content=f"""
             <div id="sql-code-update" hx-swap-oob="innerHTML:#sql-display"><code>{generated_sql}</code></div>
-            <div class="table-responsive">
+            <div class="w-full h-full">
                 {summary_html}
             </div>
         """)
 
     except Exception as e:
         error_msg = str(e)
+        alert_cls = "bg-red-50 text-red-700 border-red-200"
+        icon = "error"
+        
         if "429" in error_msg:
-             return HTMLResponse(content="<div class='alert alert-warning'>⚠️ API 請求過於頻繁（免費版限制），請稍候 60 秒再試一次。</div>")
-        if "Login failed" in error_msg:
-            return HTMLResponse(content="<div class='alert alert-danger'>❌ 資料庫連線失敗：請檢查 .env 中的帳號密碼。</div>")
-        return HTMLResponse(content=f"<div class='alert alert-danger'>❌ 系統錯誤: {error_msg}</div>")
+            icon = "timer"
+            msg = "API 請求過於頻繁（免費版限制），請稍候 60 秒再試一次。"
+            alert_cls = "bg-amber-50 text-amber-700 border-amber-200"
+        elif "Login failed" in error_msg:
+            msg = "資料庫連線失敗：請檢查伺服器端的資料庫設定。"
+        else:
+            msg = f"系統錯誤: {error_msg}"
+
+        return HTMLResponse(content=f"""
+            <div class="p-6 rounded-xl border {alert_cls} flex items-start gap-4">
+                <span class="material-symbols-outlined">{icon}</span>
+                <div>
+                    <p class="font-bold">查詢失敗</p>
+                    <p class="text-sm mt-1">{msg}</p>
+                </div>
+            </div>
+        """)
 
 @app.post("/export")
 async def export_excel(sql_query: str = Form(...)):
