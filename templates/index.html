@@ -11,10 +11,8 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com" rel="preconnect" />
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
-        rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -124,8 +122,7 @@
             text-align: left;
         }
 
-        /* pandas 數字欄預設 right-align，讓對應的 th 也右對齊 */
-        .table th:has(+ th[align="right"]),
+        /* pandas 數字欄預設 right-align */
         .table td[align="right"] {
             text-align: right;
         }
@@ -138,22 +135,58 @@
             background-color: #f2f4f6;
         }
 
-        /* Skeleton shimmer animation */
-        @keyframes skeleton-shimmer {
-            0% { background-position: -600px 0; }
-            100% { background-position: 600px 0; }
+        /* ─── Skeleton Screen ─── */
+        @keyframes sk-shimmer {
+            0%   { background-position: -800px 0; }
+            100% { background-position:  800px 0; }
         }
 
-        .skeleton-cell {
+        .sk-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .sk-thead-row th {
+            padding: 0.6rem 1rem;
+            background-color: #f5f6f8;
+            border-bottom: 2px solid #eaecef;
+        }
+
+        .sk-row td,
+        .sk-row--alt td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f0f1f3;
+        }
+
+        .sk-row--alt {
+            background-color: #fbfcfd;
+        }
+
+        .sk-bar {
+            height: 12px;
+            border-radius: 6px;
             background: linear-gradient(
                 90deg,
-                #e8eaec 25%,
-                #f4f5f7 50%,
-                #e8eaec 75%
+                #e4e6ea 25%,
+                #f0f2f5 50%,
+                #e4e6ea 75%
             );
-            background-size: 600px 100%;
-            animation: skeleton-shimmer 1.4s ease-in-out infinite;
-            border-radius: 6px;
+            background-size: 800px 100%;
+            animation: sk-shimmer 1.5s ease-in-out infinite;
+        }
+
+        .sk-bar--header {
+            height: 10px;
+            width: 70%;
+            background: linear-gradient(
+                90deg,
+                #dcdfe4 25%,
+                #ebedf0 50%,
+                #dcdfe4 75%
+            );
+            background-size: 800px 100%;
+            animation: sk-shimmer 1.5s ease-in-out infinite;
         }
 
         /* HTMX Loading States */
@@ -201,34 +234,24 @@
                 <span class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider px-4">支援的資料表</span>
             </div>
             <div class="flex flex-col gap-1 px-4 text-xs text-on-surface-variant">
-                <div
-                    class="flex justify-between items-center py-1.5 border-b border-outline-variant/10 hover:text-on-surface transition-colors cursor-default">
-                    <span>科目餘額表</span><span
-                        class="bg-surface-container-highest px-1.5 py-0.5 rounded text-[10px]">會計</span>
+                <div class="flex justify-between items-center py-1.5 border-b border-outline-variant/10 hover:text-on-surface transition-colors cursor-default">
+                    <span>科目餘額表</span><span class="bg-surface-container-highest px-1.5 py-0.5 rounded text-[10px]">會計</span>
                 </div>
-                <div
-                    class="flex justify-between items-center py-1.5 border-b border-outline-variant/10 hover:text-on-surface transition-colors cursor-default">
-                    <span>採購明細表</span><span
-                        class="bg-surface-container-highest px-1.5 py-0.5 rounded text-[10px]">進貨</span>
+                <div class="flex justify-between items-center py-1.5 border-b border-outline-variant/10 hover:text-on-surface transition-colors cursor-default">
+                    <span>採購明細表</span><span class="bg-surface-container-highest px-1.5 py-0.5 rounded text-[10px]">進貨</span>
                 </div>
-                <div
-                    class="flex justify-between items-center py-1.5 border-b border-outline-variant/10 hover:text-on-surface transition-colors cursor-default">
-                    <span>進貨明細表</span><span
-                        class="bg-surface-container-highest px-1.5 py-0.5 rounded text-[10px]">進貨</span>
+                <div class="flex justify-between items-center py-1.5 border-b border-outline-variant/10 hover:text-on-surface transition-colors cursor-default">
+                    <span>進貨明細表</span><span class="bg-surface-container-highest px-1.5 py-0.5 rounded text-[10px]">進貨</span>
                 </div>
-                <div
-                    class="flex justify-between items-center py-1.5 border-b border-outline-variant/10 hover:text-on-surface transition-colors cursor-default">
-                    <span>應收明細表</span><span
-                        class="bg-surface-container-highest px-1.5 py-0.5 rounded text-[10px]">帳務</span>
+                <div class="flex justify-between items-center py-1.5 border-b border-outline-variant/10 hover:text-on-surface transition-colors cursor-default">
+                    <span>應收明細表</span><span class="bg-surface-container-highest px-1.5 py-0.5 rounded text-[10px]">帳務</span>
                 </div>
             </div>
         </nav>
 
         <div class="mt-auto flex flex-col gap-4">
             <div class="bg-surface-container-lowest p-3 rounded-lg shadow-[0_12px_32px_rgba(25,28,30,0.04)]">
-                <label
-                    class="text-[10px] uppercase tracking-wider text-on-surface-variant font-semibold mb-2 block">System
-                    Configuration</label>
+                <label class="text-[10px] uppercase tracking-wider text-on-surface-variant font-semibold mb-2 block">System Configuration</label>
                 <div class="flex items-center gap-2 mb-2">
                     <span class="material-symbols-outlined text-on-surface-variant text-sm">key</span>
                     <input id="api-key-input"
@@ -247,8 +270,7 @@
     </aside>
 
     <!-- Main Content -->
-    <main
-        class="flex-1 md:ml-64 p-6 md:p-8 mt-16 md:mt-0 max-w-[1600px] mx-auto w-full flex flex-col gap-8 h-screen overflow-y-auto">
+    <main class="flex-1 md:ml-64 p-6 md:p-8 mt-16 md:mt-0 max-w-[1600px] mx-auto w-full flex flex-col gap-8 h-screen overflow-y-auto">
         <!-- Main Content Header -->
         <header class="flex items-center justify-between">
             <div class="flex items-center gap-2 text-sm text-on-surface-variant">
@@ -256,8 +278,7 @@
                 <span class="material-symbols-outlined text-sm">chevron_right</span>
                 <span class="text-on-surface font-medium">Smart Query</span>
             </div>
-            <div
-                class="flex items-center gap-2 bg-surface-container-lowest px-3 py-1.5 rounded-full shadow-[0_12px_32px_rgba(25,28,30,0.04)]">
+            <div class="flex items-center gap-2 bg-surface-container-lowest px-3 py-1.5 rounded-full shadow-[0_12px_32px_rgba(25,28,30,0.04)]">
                 <div class="w-2 h-2 rounded-full bg-[#10b981]"></div>
                 <span class="text-xs font-medium text-on-surface-variant tracking-wide">System Status: Ready</span>
             </div>
@@ -281,10 +302,8 @@
         </form>
 
         <!-- Results Card & Data Table -->
-        <section
-            class="bg-surface-container-lowest rounded-xl shadow-[0_12px_32px_rgba(25,28,30,0.04)] flex flex-col flex-1 min-h-[400px]">
-            <div
-                class="flex items-center justify-between p-4 border-b border-outline-variant/20 bg-surface-container-lowest/70 backdrop-blur-md sticky top-0 z-10 rounded-t-xl">
+        <section class="bg-surface-container-lowest rounded-xl shadow-[0_12px_32px_rgba(25,28,30,0.04)] flex flex-col flex-1 min-h-[400px]">
+            <div class="flex items-center justify-between p-4 border-b border-outline-variant/20 bg-surface-container-lowest/70 backdrop-blur-md sticky top-0 z-10 rounded-t-xl">
                 <h2 class="text-lg font-semibold font-headline text-on-surface">查詢結果</h2>
                 <div class="flex items-center gap-3">
                     <button type="button" onclick="exportExcel()"
@@ -295,86 +314,116 @@
                 </div>
             </div>
             <div class="p-4 flex-1 overflow-auto bg-white rounded-b-xl">
-                <!-- 骨架屏 -->
-                <div id="skeleton-area" class="htmx-indicator w-full">
-                    <!-- 模擬表頭 -->
-                    <div class="flex gap-3 mb-3 px-1 pt-1">
-                        <div class="skeleton-cell h-5 w-24"></div>
-                        <div class="skeleton-cell h-5 w-32"></div>
-                        <div class="skeleton-cell h-5 w-28"></div>
-                        <div class="skeleton-cell h-5 w-20"></div>
-                        <div class="skeleton-cell h-5 w-36"></div>
-                        <div class="skeleton-cell h-5 w-24"></div>
-                    </div>
-                    <div class="border-b border-outline-variant/30 mb-2"></div>
-                    <!-- 模擬資料行 -->
-                    <div class="flex flex-col gap-2">
-                        <!-- Row 1 -->
-                        <div class="flex gap-3 px-1 py-1.5">
-                            <div class="skeleton-cell h-4 w-20"></div>
-                            <div class="skeleton-cell h-4 w-28"></div>
-                            <div class="skeleton-cell h-4 w-24" style="animation-delay: 0.05s"></div>
-                            <div class="skeleton-cell h-4 w-16" style="animation-delay: 0.1s"></div>
-                            <div class="skeleton-cell h-4 w-32" style="animation-delay: 0.15s"></div>
-                            <div class="skeleton-cell h-4 w-20" style="animation-delay: 0.2s"></div>
-                        </div>
-                        <!-- Row 2 -->
-                        <div class="flex gap-3 px-1 py-1.5 bg-surface-container-low/50 rounded">
-                            <div class="skeleton-cell h-4 w-24" style="animation-delay: 0.1s"></div>
-                            <div class="skeleton-cell h-4 w-20" style="animation-delay: 0.15s"></div>
-                            <div class="skeleton-cell h-4 w-32" style="animation-delay: 0.2s"></div>
-                            <div class="skeleton-cell h-4 w-28" style="animation-delay: 0.05s"></div>
-                            <div class="skeleton-cell h-4 w-16" style="animation-delay: 0.25s"></div>
-                            <div class="skeleton-cell h-4 w-24" style="animation-delay: 0.1s"></div>
-                        </div>
-                        <!-- Row 3 -->
-                        <div class="flex gap-3 px-1 py-1.5">
-                            <div class="skeleton-cell h-4 w-16" style="animation-delay: 0.2s"></div>
-                            <div class="skeleton-cell h-4 w-32" style="animation-delay: 0.05s"></div>
-                            <div class="skeleton-cell h-4 w-20" style="animation-delay: 0.1s"></div>
-                            <div class="skeleton-cell h-4 w-24" style="animation-delay: 0.15s"></div>
-                            <div class="skeleton-cell h-4 w-28" style="animation-delay: 0.2s"></div>
-                            <div class="skeleton-cell h-4 w-16" style="animation-delay: 0.25s"></div>
-                        </div>
-                        <!-- Row 4 -->
-                        <div class="flex gap-3 px-1 py-1.5 bg-surface-container-low/50 rounded">
-                            <div class="skeleton-cell h-4 w-28" style="animation-delay: 0.15s"></div>
-                            <div class="skeleton-cell h-4 w-16" style="animation-delay: 0.2s"></div>
-                            <div class="skeleton-cell h-4 w-24" style="animation-delay: 0.05s"></div>
-                            <div class="skeleton-cell h-4 w-20" style="animation-delay: 0.1s"></div>
-                            <div class="skeleton-cell h-4 w-32" style="animation-delay: 0.15s"></div>
-                            <div class="skeleton-cell h-4 w-28" style="animation-delay: 0.2s"></div>
-                        </div>
-                        <!-- Row 5 -->
-                        <div class="flex gap-3 px-1 py-1.5">
-                            <div class="skeleton-cell h-4 w-20" style="animation-delay: 0.25s"></div>
-                            <div class="skeleton-cell h-4 w-24" style="animation-delay: 0.1s"></div>
-                            <div class="skeleton-cell h-4 w-16" style="animation-delay: 0.15s"></div>
-                            <div class="skeleton-cell h-4 w-32" style="animation-delay: 0.2s"></div>
-                            <div class="skeleton-cell h-4 w-20" style="animation-delay: 0.05s"></div>
-                            <div class="skeleton-cell h-4 w-28" style="animation-delay: 0.1s"></div>
-                        </div>
-                        <!-- Row 6 -->
-                        <div class="flex gap-3 px-1 py-1.5 bg-surface-container-low/50 rounded">
-                            <div class="skeleton-cell h-4 w-32" style="animation-delay: 0.1s"></div>
-                            <div class="skeleton-cell h-4 w-28" style="animation-delay: 0.15s"></div>
-                            <div class="skeleton-cell h-4 w-24" style="animation-delay: 0.2s"></div>
-                            <div class="skeleton-cell h-4 w-16" style="animation-delay: 0.05s"></div>
-                            <div class="skeleton-cell h-4 w-20" style="animation-delay: 0.25s"></div>
-                            <div class="skeleton-cell h-4 w-32" style="animation-delay: 0.1s"></div>
-                        </div>
-                        <!-- Row 7 -->
-                        <div class="flex gap-3 px-1 py-1.5">
-                            <div class="skeleton-cell h-4 w-24" style="animation-delay: 0.2s"></div>
-                            <div class="skeleton-cell h-4 w-16" style="animation-delay: 0.1s"></div>
-                            <div class="skeleton-cell h-4 w-28" style="animation-delay: 0.05s"></div>
-                            <div class="skeleton-cell h-4 w-32" style="animation-delay: 0.15s"></div>
-                            <div class="skeleton-cell h-4 w-24" style="animation-delay: 0.2s"></div>
-                            <div class="skeleton-cell h-4 w-20" style="animation-delay: 0.25s"></div>
-                        </div>
-                    </div>
+
+                <!-- 骨架屏：使用真實 table 確保欄位對齊 -->
+                <div id="skeleton-area" class="htmx-indicator w-full overflow-x-auto">
+                    <table class="sk-table">
+                        <colgroup>
+                            <col style="width: 14%">
+                            <col style="width: 8%">
+                            <col style="width: 12%">
+                            <col style="width: 10%">
+                            <col style="width: 14%">
+                            <col style="width: 14%">
+                            <col style="width: 10%">
+                            <col style="width: 9%">
+                            <col style="width: 9%">
+                        </colgroup>
+                        <thead>
+                            <tr class="sk-thead-row">
+                                <th><div class="sk-bar sk-bar--header" style="width:75%"></div></th>
+                                <th><div class="sk-bar sk-bar--header" style="width:60%"></div></th>
+                                <th><div class="sk-bar sk-bar--header" style="width:80%"></div></th>
+                                <th><div class="sk-bar sk-bar--header" style="width:65%"></div></th>
+                                <th><div class="sk-bar sk-bar--header" style="width:70%"></div></th>
+                                <th><div class="sk-bar sk-bar--header" style="width:80%"></div></th>
+                                <th><div class="sk-bar sk-bar--header" style="width:55%"></div></th>
+                                <th><div class="sk-bar sk-bar--header" style="width:60%"></div></th>
+                                <th><div class="sk-bar sk-bar--header" style="width:55%"></div></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="sk-row">
+                                <td><div class="sk-bar" style="width:80%"></div></td>
+                                <td><div class="sk-bar" style="width:60%"></div></td>
+                                <td><div class="sk-bar" style="width:70%"></div></td>
+                                <td><div class="sk-bar" style="width:90%"></div></td>
+                                <td><div class="sk-bar" style="width:55%"></div></td>
+                                <td><div class="sk-bar" style="width:75%"></div></td>
+                                <td><div class="sk-bar" style="width:50%"></div></td>
+                                <td><div class="sk-bar" style="width:70%"></div></td>
+                                <td><div class="sk-bar" style="width:60%"></div></td>
+                            </tr>
+                            <tr class="sk-row sk-row--alt">
+                                <td><div class="sk-bar" style="width:65%"></div></td>
+                                <td><div class="sk-bar" style="width:85%"></div></td>
+                                <td><div class="sk-bar" style="width:50%"></div></td>
+                                <td><div class="sk-bar" style="width:70%"></div></td>
+                                <td><div class="sk-bar" style="width:80%"></div></td>
+                                <td><div class="sk-bar" style="width:60%"></div></td>
+                                <td><div class="sk-bar" style="width:90%"></div></td>
+                                <td><div class="sk-bar" style="width:55%"></div></td>
+                                <td><div class="sk-bar" style="width:75%"></div></td>
+                            </tr>
+                            <tr class="sk-row">
+                                <td><div class="sk-bar" style="width:90%"></div></td>
+                                <td><div class="sk-bar" style="width:55%"></div></td>
+                                <td><div class="sk-bar" style="width:80%"></div></td>
+                                <td><div class="sk-bar" style="width:65%"></div></td>
+                                <td><div class="sk-bar" style="width:70%"></div></td>
+                                <td><div class="sk-bar" style="width:85%"></div></td>
+                                <td><div class="sk-bar" style="width:60%"></div></td>
+                                <td><div class="sk-bar" style="width:80%"></div></td>
+                                <td><div class="sk-bar" style="width:50%"></div></td>
+                            </tr>
+                            <tr class="sk-row sk-row--alt">
+                                <td><div class="sk-bar" style="width:70%"></div></td>
+                                <td><div class="sk-bar" style="width:90%"></div></td>
+                                <td><div class="sk-bar" style="width:60%"></div></td>
+                                <td><div class="sk-bar" style="width:80%"></div></td>
+                                <td><div class="sk-bar" style="width:65%"></div></td>
+                                <td><div class="sk-bar" style="width:50%"></div></td>
+                                <td><div class="sk-bar" style="width:75%"></div></td>
+                                <td><div class="sk-bar" style="width:65%"></div></td>
+                                <td><div class="sk-bar" style="width:85%"></div></td>
+                            </tr>
+                            <tr class="sk-row">
+                                <td><div class="sk-bar" style="width:55%"></div></td>
+                                <td><div class="sk-bar" style="width:70%"></div></td>
+                                <td><div class="sk-bar" style="width:90%"></div></td>
+                                <td><div class="sk-bar" style="width:55%"></div></td>
+                                <td><div class="sk-bar" style="width:85%"></div></td>
+                                <td><div class="sk-bar" style="width:70%"></div></td>
+                                <td><div class="sk-bar" style="width:65%"></div></td>
+                                <td><div class="sk-bar" style="width:90%"></div></td>
+                                <td><div class="sk-bar" style="width:60%"></div></td>
+                            </tr>
+                            <tr class="sk-row sk-row--alt">
+                                <td><div class="sk-bar" style="width:85%"></div></td>
+                                <td><div class="sk-bar" style="width:65%"></div></td>
+                                <td><div class="sk-bar" style="width:75%"></div></td>
+                                <td><div class="sk-bar" style="width:90%"></div></td>
+                                <td><div class="sk-bar" style="width:60%"></div></td>
+                                <td><div class="sk-bar" style="width:80%"></div></td>
+                                <td><div class="sk-bar" style="width:55%"></div></td>
+                                <td><div class="sk-bar" style="width:70%"></div></td>
+                                <td><div class="sk-bar" style="width:80%"></div></td>
+                            </tr>
+                            <tr class="sk-row">
+                                <td><div class="sk-bar" style="width:60%"></div></td>
+                                <td><div class="sk-bar" style="width:80%"></div></td>
+                                <td><div class="sk-bar" style="width:65%"></div></td>
+                                <td><div class="sk-bar" style="width:75%"></div></td>
+                                <td><div class="sk-bar" style="width:90%"></div></td>
+                                <td><div class="sk-bar" style="width:55%"></div></td>
+                                <td><div class="sk-bar" style="width:80%"></div></td>
+                                <td><div class="sk-bar" style="width:60%"></div></td>
+                                <td><div class="sk-bar" style="width:70%"></div></td>
+                            </tr>
+                        </tbody>
+                    </table>
                     <!-- AI 思考中提示 -->
-                    <div class="flex items-center gap-2 mt-6 px-1">
+                    <div class="flex items-center gap-2 mt-5 px-1">
                         <div class="flex gap-1">
                             <span class="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce" style="animation-delay: 0s"></span>
                             <span class="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce" style="animation-delay: 0.15s"></span>
@@ -384,29 +433,27 @@
                     </div>
                 </div>
 
+                <!-- 查詢結果 -->
                 <div id="result-content" class="w-full h-full">
                     <div class="flex flex-col items-center justify-center py-16 text-on-surface-variant h-full">
                         <span class="material-symbols-outlined text-5xl mb-4 opacity-30">table_chart</span>
                         <p>請在上方輸入框進行查詢</p>
                     </div>
                 </div>
+
             </div>
         </section>
 
-        <!-- SQL Observatory (Bottom Collapsible) -->
-        <section
-            class="bg-surface-container-lowest rounded-xl shadow-[0_12px_32px_rgba(25,28,30,0.04)] overflow-hidden shrink-0">
+        <!-- SQL Observatory -->
+        <section class="bg-surface-container-lowest rounded-xl shadow-[0_12px_32px_rgba(25,28,30,0.04)] overflow-hidden shrink-0">
             <div class="p-4 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <span class="material-symbols-outlined text-primary">code_blocks</span>
                     <h3 class="text-sm font-semibold font-headline text-on-surface">SQL 生成結果</h3>
-                    <span
-                        class="bg-tertiary-container text-on-tertiary-container text-[10px] px-2 py-0.5 rounded-full font-medium tracking-wide">AI
-                        Generated</span>
+                    <span class="bg-tertiary-container text-on-tertiary-container text-[10px] px-2 py-0.5 rounded-full font-medium tracking-wide">AI Generated</span>
                 </div>
             </div>
-            <div
-                class="p-4 bg-[#1e293b] text-[#e2e8f0] font-mono text-sm overflow-x-auto rounded-b-xl border-t border-outline-variant/10">
+            <div class="p-4 bg-[#1e293b] text-[#e2e8f0] font-mono text-sm overflow-x-auto rounded-b-xl border-t border-outline-variant/10">
                 <pre id="sql-display" class="m-0"><code>-- SQL 將在此處顯示</code></pre>
             </div>
         </section>
