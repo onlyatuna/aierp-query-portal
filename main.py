@@ -164,6 +164,9 @@ async def handle_query(request: Request, user_input: str = Form(...), api_key: s
         alert_cls = "bg-red-50 text-red-700 border-red-200"
         icon = "error"
         
+        # 嘗試從 locals 取得已生成的 SQL，若還沒生成則顯示空白
+        failed_sql = locals().get('generated_sql', '-- 尚未生成 SQL --')
+
         if "429" in error_msg:
             icon = "timer"
             msg = "API 請求過於頻繁（免費版限制），請稍候 60 秒再試一次。"
@@ -174,6 +177,7 @@ async def handle_query(request: Request, user_input: str = Form(...), api_key: s
             msg = f"系統錯誤: {error_msg}"
 
         return HTMLResponse(content=f"""
+            <div id="sql-code-update" hx-swap-oob="innerHTML:#sql-display"><code>{failed_sql}</code></div>
             <div class="p-6 rounded-xl border {alert_cls} flex items-start gap-4">
                 <span class="material-symbols-outlined">{icon}</span>
                 <div>
