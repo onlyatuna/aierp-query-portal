@@ -71,9 +71,7 @@ def init_db_views():
         print(f"❌ 資料庫連線初始化失敗: {e}")
         print("💡 請確認 .env 中的資料庫屬性是否正確，以及 gemio 內建視圖是否存在。")
 
-# Gemini API 設定
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel('gemini-2.5-flash')
+# Gemini API 設定 (改為由使用者在前端手動填入 API Key)
 
 @app.on_event("startup")
 async def startup_event():
@@ -92,7 +90,7 @@ async def index(request: Request):
     )
 
 @app.post("/query")
-async def handle_query(request: Request, user_input: str = Form(...)):
+async def handle_query(request: Request, user_input: str = Form(...), api_key: str = Form(...)):
     try:
         # 1. 準備 Prompt
         prompt = f"""
@@ -111,9 +109,11 @@ async def handle_query(request: Request, user_input: str = Form(...)):
         SQL:
         """
         
-        # 2. 呼叫 Gemini
+        # 2. 呼叫 Gemini (使用前端傳入的 API Key 動態建立模型)
         try:
-            response = model.generate_content(prompt)
+            genai.configure(api_key=api_key)
+            user_model = genai.GenerativeModel('gemini-2.5-flash')
+            response = user_model.generate_content(prompt)
             generated_sql = clean_sql(response.text)
         except Exception as ai_err:
             if "429" in str(ai_err):

@@ -50,11 +50,18 @@
     <!-- 2. 輸入框 -->
     <div class="card mb-4 shadow-sm">
         <div class="card-body">
-            <!-- 加入 hx-disabled-elt 確保查詢中按鈕無法重複點擊 -->
+            <!-- API Key 輸入欄位 -->
+            <div class="mb-3">
+                <label for="api-key-input" class="form-label fw-semibold">🔑 Gemini API Key</label>
+                <input type="password" id="api-key-input" name="api_key" class="form-control" placeholder="請輸入您的 Gemini API Key" required>
+                <div class="form-text">您的 API Key 僅用於本次查詢，不會被伺服器儲存。<a href="https://aistudio.google.com/apikey" target="_blank">取得 API Key</a></div>
+            </div>
+            <!-- 查詢輸入框 -->
             <form hx-post="/query" 
                   hx-target="#result-content" 
                   hx-indicator="#skeleton-area"
                   hx-disabled-elt="button, input">
+                <input type="hidden" name="api_key" id="api-key-hidden">
                 <div class="input-group">
                     <input type="text" name="user_input" class="form-control form-control-lg" placeholder="例如：哪些產品庫存快沒了？" required>
                     <button class="btn btn-primary btn-lg px-4" type="submit">
@@ -137,6 +144,28 @@
         form.submit();
         document.body.removeChild(form);
     }
+
+    // === API Key 管理 ===
+    const apiKeyInput = document.getElementById('api-key-input');
+    const apiKeyHidden = document.getElementById('api-key-hidden');
+
+    // 頁面載入時：從 localStorage 恢復上次的 API Key
+    const savedKey = localStorage.getItem('gemini_api_key');
+    if (savedKey) {
+        apiKeyInput.value = savedKey;
+        apiKeyHidden.value = savedKey;
+    }
+
+    // 輸入時：同步到 hidden input 並存入 localStorage
+    apiKeyInput.addEventListener('input', function() {
+        apiKeyHidden.value = this.value;
+        localStorage.setItem('gemini_api_key', this.value);
+    });
+
+    // 表單提交前：確保 hidden input 有最新的值
+    document.querySelector('form[hx-post="/query"]').addEventListener('htmx:configRequest', function(evt) {
+        apiKeyHidden.value = apiKeyInput.value;
+    });
 </script>
 
 </body>
