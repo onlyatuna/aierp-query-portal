@@ -110,7 +110,7 @@ SQL:
         # 2. 呼叫 Gemini
         try:
             genai.configure(api_key=api_key)
-            user_model = genai.GenerativeModel('gemini-1.5-flash')
+            user_model = genai.GenerativeModel('gemini-2.5-flash')
             response = user_model.generate_content(prompt)
             generated_sql = clean_sql(response.text)
         except Exception as ai_err:
